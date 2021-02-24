@@ -1,0 +1,10 @@
+[Unit]
+Description=Ethereum_Exporter
+After=docker.service
+
+[Service]
+ExecStart=/usr/local/bin/ethereum_exporter
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
