@@ -23,6 +23,6 @@ install: bin/$(PROGRAM) uninstall
 uninstall:
 	systemctl stop $(PROGRAM) 2>/dev/null | true
 	systemctl disable $(PROGRAM) 2>/dev/null | true
-	rm -f /etc/systemd/system/$(PROGRAM).service
+	rm -f /etc/systemd/system/$(PROGRAM).service 2>/dev/null | true
 
 	rm -f $(PREFIX)/bin/$(PROGRAM) 2>/dev/null | true
