@@ -2,9 +2,19 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/prometheus/common/log"
 )
+
+type Balances struct {
+	WalletUSD float64
+	WalletETH float64
+	PoolUSD   float64
+	PoolETH   float64
+}
 
 type EthereumInfo struct {
 	// from WhatToMine API
@@ -21,13 +31,34 @@ type EthereumInfo struct {
 	NetworkHashRate int64   `json:"nethash"`
 	// from CryptoCompare API
 	ETHUSDPrice float64 `json:"USD"`
+	// from Ethplorer and pool APIs
+	Balances map[string]Balances
 }
 
-func getEthereumInfo() (*EthereumInfo, error) {
+type EthermineResponse struct {
+	Status string `json:"status"`
+	Error  string `json:"error"`
+	Data   struct {
+		Unpaid int64 `json:"unpaid"`
+	} `json:"data"`
+}
+
+type EthplorerResponse struct {
+	ETH struct {
+		Balance float64 `json:"balance"`
+	} `json:"ETH"`
+}
+
+func getEthereumInfo(addresses []string, verbose bool) (*EthereumInfo, error) {
 	result := new(EthereumInfo)
+	result.Balances = make(map[string]Balances)
 
 	{
-		resp, err := http.Get("https://whattomine.com/coins/151.json")
+		url := "https://whattomine.com/coins/151.json"
+		if verbose {
+			log.Infoln(url)
+		}
+		resp, err := http.Get(url)
 		if err != nil {
 			return nil, err
 		}
@@ -35,13 +66,20 @@ func getEthereumInfo() (*EthereumInfo, error) {
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			return nil, err
+		}
+		if verbose {
+			log.Infoln(string(body))
 		}
 		if err := json.Unmarshal(body, result); err != nil {
 			return nil, err
 		}
 	}
 	{
-		resp, err := http.Get("https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD")
+		url := "https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD"
+		if verbose {
+			log.Infoln(url)
+		}
+		resp, err := http.Get(url)
 		if err != nil {
 			return nil, err
 		}
@@ -50,10 +88,80 @@ func getEthereumInfo() (*EthereumInfo, error) {
 		if err != nil {
 			return nil, err
 		}
+		if verbose {
+			log.Infoln(string(body))
+		}
 		if err := json.Unmarshal(body, result); err != nil {
 			return nil, err
+		}
+	}
+	{
+		for _, address := range addresses {
+			balances, err := getBalances(address, result.ETHUSDPrice, verbose)
+			if err != nil {
+				return nil, err
+			}
+			result.Balances[address] = *balances
 		}
 	}
 
 	return result, nil
+}
+
+func getBalances(address string, ethPrice float64, verbose bool) (*Balances, error) {
+	balances := new(Balances)
+
+	{
+		url := "https://api.ethplorer.io/getAddressInfo/" + address + "?apiKey=freekey"
+		if verbose {
+			log.Infoln(url)
+		}
+		resp, err := http.Get(url)
+		if err != nil {
+			return nil, err
+		}
+		defer resp.Body.Close()
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+		}
+		if verbose {
+			log.Infoln(string(body))
+		}
+		var result EthplorerResponse
+		if err := json.Unmarshal(body, &result); err != nil {
+			return nil, err
+		}
+		balances.WalletETH = result.ETH.Balance
+		balances.WalletUSD = result.ETH.Balance * ethPrice
+	}
+	{
+		url := "https://api.ethermine.org/miner/" + address + "/currentStats"
+		if verbose {
+			log.Infoln(url)
+		}
+		resp, err := http.Get(url)
+		if err != nil {
+			return nil, err
+		}
+		defer resp.Body.Close()
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+		}
+		if verbose {
+			log.Infoln(string(body))
+		}
+		var result EthermineResponse
+		if err := json.Unmarshal(body, &result); err != nil {
+			return nil, err
+		}
+		if result.Status != "OK" {
+			return nil, errors.New("Ethermine API error: " + result.Error)
+		}
+		balances.PoolETH = float64(result.Data.Unpaid) / 1e18
+		balances.PoolUSD = balances.PoolETH * ethPrice
+	}
+
+	return balances, nil
 }

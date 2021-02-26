@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -20,6 +21,10 @@ var (
 		"update-interval",
 		"How often to query third-party APIs for updates.",
 	).Default("1m").Duration()
+	monitorAddresses = kingpin.Flag(
+		"monitor-addresses",
+		"Monitor these Ethereum addresses for balance (comma-separated).",
+	).Default("").String()
 )
 
 func metricsHandler(w http.ResponseWriter, r *http.Request, ethereumCollector *EthereumCollector) {
@@ -36,10 +41,15 @@ func main() {
 
 	log.Infoln("Starting ethereum exporter")
 
+	monitorAddressesSplit := []string{}
+	if *monitorAddresses != "" {
+		monitorAddressesSplit = strings.Split(*monitorAddresses, ",")
+	}
+
 	ethereumCollector, _ := newEthereumCollector()
-	ethInfo, err := getEthereumInfo()
+	ethInfo, err := getEthereumInfo(monitorAddressesSplit, true)
 	if err != nil {
-		log.Errorln(err)
+		log.Fatalln("Error reading initial Ethereum info:", err)
 	} else {
 		log.Infoln("Read initial Ethereum info: ", ethInfo)
 		ethereumCollector.Update(ethInfo)
@@ -67,10 +77,7 @@ func main() {
 		</head>
 		<body>
 		<h1>Ethereum Exporter</h1>
-		<form action="/metrics">
-		<label>Target:</label> <input type="text" name="target" placeholder="X.X.X.X" value="1.2.3.4"><br>
-		<input type="submit" value="Submit">
-		</form>
+		<a href="/metrics">Metrics</a>
 		</body>
 		</html>`))
 	})
@@ -78,7 +85,7 @@ func main() {
 	go func() {
 		for {
 			time.Sleep(*updateInterval)
-			ethInfo, err := getEthereumInfo()
+			ethInfo, err := getEthereumInfo(monitorAddressesSplit, false)
 			if err != nil {
 				log.Errorln(err)
 			} else {

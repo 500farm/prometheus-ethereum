@@ -14,6 +14,7 @@ type EthereumCollector struct {
 	network_hashrate_hashes_per_sec   prometheus.Gauge
 	eth_price_dollars                 prometheus.Gauge
 	earnings_per_ghs_per_hour_dollars prometheus.Gauge
+	address_balance                   *prometheus.GaugeVec
 }
 
 func newEthereumCollector() (*EthereumCollector, error) {
@@ -55,6 +56,11 @@ func newEthereumCollector() (*EthereumCollector, error) {
 			Name:      "earnings_per_gh_per_hour_dollars",
 			Help:      "Mining earnings, dollars per GH/s per hour",
 		}),
+		address_balance: prometheus.NewGaugeVec(prometheus.GaugeOpts{
+			Namespace: namespace,
+			Name:      "address_balance",
+			Help:      "Balance on Ethereum address and unpaid on Ethermine pool",
+		}, []string{"address", "currency", "location"}),
 	}, nil
 }
 
@@ -66,6 +72,7 @@ func (e *EthereumCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- e.network_hashrate_hashes_per_sec.Desc()
 	ch <- e.eth_price_dollars.Desc()
 	ch <- e.earnings_per_ghs_per_hour_dollars.Desc()
+	e.address_balance.Describe(ch)
 }
 
 func (e *EthereumCollector) Collect(ch chan<- prometheus.Metric) {
@@ -76,6 +83,7 @@ func (e *EthereumCollector) Collect(ch chan<- prometheus.Metric) {
 	ch <- e.network_hashrate_hashes_per_sec
 	ch <- e.eth_price_dollars
 	ch <- e.earnings_per_ghs_per_hour_dollars
+	e.address_balance.Collect(ch)
 }
 
 func (e *EthereumCollector) Update(info *EthereumInfo) {
@@ -87,4 +95,11 @@ func (e *EthereumCollector) Update(info *EthereumInfo) {
 	e.network_hashrate_hashes_per_sec.Set(float64(info.NetworkHashRate))
 	e.eth_price_dollars.Set(info.ETHUSDPrice)
 	e.earnings_per_ghs_per_hour_dollars.Set(1e9 * 3600 / info.Difficulty * info.BlockReward * info.ETHUSDPrice)
+
+	for address, balances := range info.Balances {
+		e.address_balance.With(prometheus.Labels{"address": address, "currency": "ETH", "location": "wallet"}).Set(balances.WalletETH)
+		e.address_balance.With(prometheus.Labels{"address": address, "currency": "USD", "location": "wallet"}).Set(balances.WalletUSD)
+		e.address_balance.With(prometheus.Labels{"address": address, "currency": "ETH", "location": "pool"}).Set(balances.PoolETH)
+		e.address_balance.With(prometheus.Labels{"address": address, "currency": "USD", "location": "pool"}).Set(balances.PoolUSD)
+	}
 }
