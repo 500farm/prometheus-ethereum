@@ -23,8 +23,16 @@ var (
 	).Default("1m").Duration()
 	monitorAddresses = kingpin.Flag(
 		"monitor-addresses",
-		"Monitor these Ethereum addresses for balance (comma-separated).",
+		"Monitor these Ethereum addresses for balance (comma-separated). Requires --etherscan-key and/or --ethermine-org",
 	).Default("").String()
+	etherscanKey = kingpin.Flag(
+		"etherscan-key",
+		"Monitor wallet balances for --monitor-addresses via Etherscan.io API.",
+	).Default("").String()
+	monitorEthermine = kingpin.Flag(
+		"ethermine-org",
+		"Monitor unpaid balances for --monitor-addresses on Ethermine.org pool.",
+	).Default("false").Bool()
 )
 
 func metricsHandler(w http.ResponseWriter, r *http.Request, ethereumCollector *EthereumCollector) {

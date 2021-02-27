@@ -96,10 +96,12 @@ func (e *EthereumCollector) Update(info *EthereumInfo) {
 	e.eth_price_dollars.Set(info.ETHUSDPrice)
 	e.earnings_per_ghs_per_hour_dollars.Set(1e9 * 3600 / info.Difficulty * info.BlockReward * info.ETHUSDPrice)
 
-	for address, balances := range info.Balances {
-		e.address_balance.With(prometheus.Labels{"address": address, "currency": "ETH", "location": "wallet"}).Set(balances.WalletETH)
-		e.address_balance.With(prometheus.Labels{"address": address, "currency": "USD", "location": "wallet"}).Set(balances.WalletUSD)
-		e.address_balance.With(prometheus.Labels{"address": address, "currency": "ETH", "location": "pool"}).Set(balances.PoolETH)
-		e.address_balance.With(prometheus.Labels{"address": address, "currency": "USD", "location": "pool"}).Set(balances.PoolUSD)
+	for _, balance := range info.Balances {
+		e.address_balance.
+			With(prometheus.Labels{"address": balance.Address, "currency": "ETH", "location": balance.Location}).
+			Set(balance.Balance)
+		e.address_balance.
+			With(prometheus.Labels{"address": balance.Address, "currency": "USD", "location": balance.Location}).
+			Set(balance.Balance * info.ETHUSDPrice)
 	}
 }
