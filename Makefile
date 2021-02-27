@@ -20,7 +20,7 @@ install_program:
 	cp bin/$(PROGRAM) $(PREFIX)/bin/
 
 install_systemd:
-	cp -i systemd/$(PROGRAM).service /etc/systemd/system/
+	cp -n systemd/$(PROGRAM).service /etc/systemd/system/ | true
 	systemctl enable $(PROGRAM)
 	systemctl start $(PROGRAM)
 	systemctl status $(PROGRAM)
