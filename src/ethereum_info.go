@@ -47,6 +47,10 @@ type EthplorerResponse struct {
 	ETH struct {
 		Balance float64 `json:"balance"`
 	} `json:"ETH"`
+	Error struct {
+		Code    int    `json:"code"`
+		Message string `json:"message"`
+	} `json:"error"`
 }
 
 func getEthereumInfo(addresses []string, verbose bool) (*EthereumInfo, error) {
@@ -131,6 +135,9 @@ func getBalances(address string, ethPrice float64, verbose bool) (*Balances, err
 		var result EthplorerResponse
 		if err := json.Unmarshal(body, &result); err != nil {
 			return nil, err
+		}
+		if result.Error.Code > 0 {
+			return nil, errors.New("Ethplorer API error: " + result.Error.Message)
 		}
 		balances.WalletETH = result.ETH.Balance
 		balances.WalletUSD = result.ETH.Balance * ethPrice
