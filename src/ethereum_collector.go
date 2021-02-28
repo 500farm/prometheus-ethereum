@@ -86,7 +86,7 @@ func (e *EthereumCollector) Collect(ch chan<- prometheus.Metric) {
 	e.address_balance.Collect(ch)
 }
 
-func (e *EthereumCollector) Update(info *EthereumInfo) {
+func (e *EthereumCollector) UpdateFrom(info *EthereumApiResults) {
 	t, _ := strconv.ParseFloat(info.BlockTime, 64)
 	e.block_time_seconds.Set(t)
 	e.block_reward_eth.Set(info.BlockReward)

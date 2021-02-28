@@ -11,7 +11,7 @@ import (
 	"github.com/prometheus/common/log"
 )
 
-type EthereumInfo struct {
+type EthereumApiResults struct {
 	// from WhatToMine API
 	BlockTime       string  `json:"block_time"`
 	BlockReward     float64 `json:"block_reward"`
@@ -49,8 +49,8 @@ type EtherscanResponse struct {
 	Result string `json:"result"`
 }
 
-func getEthereumInfo(addresses []string, verbose bool) (*EthereumInfo, error) {
-	result := new(EthereumInfo)
+func getEthereumInfoFromApis(addresses []string, verbose bool) (*EthereumApiResults, error) {
+	result := new(EthereumApiResults)
 
 	{
 		url := "https://whattomine.com/coins/151.json"

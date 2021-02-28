@@ -55,12 +55,12 @@ func main() {
 	}
 
 	ethereumCollector, _ := newEthereumCollector()
-	ethInfo, err := getEthereumInfo(monitorAddressesSplit, true)
+	ethInfo, err := getEthereumInfoFromApis(monitorAddressesSplit, true)
 	if err != nil {
 		log.Fatalln("Error reading initial Ethereum info:", err)
 	} else {
 		log.Infoln("Read initial Ethereum info: ", ethInfo)
-		ethereumCollector.Update(ethInfo)
+		ethereumCollector.UpdateFrom(ethInfo)
 	}
 
 	http.HandleFunc("/metrics", func(w http.ResponseWriter, r *http.Request) {
@@ -93,11 +93,11 @@ func main() {
 	go func() {
 		for {
 			time.Sleep(*updateInterval)
-			ethInfo, err := getEthereumInfo(monitorAddressesSplit, false)
+			ethInfo, err := getEthereumInfoFromApis(monitorAddressesSplit, false)
 			if err != nil {
 				log.Errorln(err)
 			} else {
-				ethereumCollector.Update(ethInfo)
+				ethereumCollector.UpdateFrom(ethInfo)
 			}
 		}
 	}()
