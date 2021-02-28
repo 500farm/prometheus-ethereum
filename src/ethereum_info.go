@@ -54,20 +54,9 @@ func getEthereumInfo(addresses []string, verbose bool) (*EthereumInfo, error) {
 
 	{
 		url := "https://whattomine.com/coins/151.json"
-		if verbose {
-			log.Infoln(url)
-		}
-		resp, err := http.Get(url)
+		body, err := apiCall(url, verbose)
 		if err != nil {
 			return nil, err
-		}
-		defer resp.Body.Close()
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return nil, err
-		}
-		if verbose {
-			log.Infoln(string(body))
 		}
 		if err := json.Unmarshal(body, result); err != nil {
 			return nil, err
@@ -75,20 +64,9 @@ func getEthereumInfo(addresses []string, verbose bool) (*EthereumInfo, error) {
 	}
 	{
 		url := "https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD"
-		if verbose {
-			log.Infoln(url)
-		}
-		resp, err := http.Get(url)
+		body, err := apiCall(url, verbose)
 		if err != nil {
 			return nil, err
-		}
-		defer resp.Body.Close()
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return nil, err
-		}
-		if verbose {
-			log.Infoln(string(body))
 		}
 		if err := json.Unmarshal(body, result); err != nil {
 			return nil, err
@@ -137,21 +115,11 @@ func getBalances(address string, verbose bool) []Balance {
 
 func getWalletBalance(address string, verbose bool, apiKey string) (float64, error) {
 	url := fmt.Sprintf("https://api.etherscan.io/api?module=account&action=balance&address=%s&tag=latest&apikey=%s", address, apiKey)
-	if verbose {
-		log.Infoln(url)
-	}
-	resp, err := http.Get(url)
+	body, err := apiCall(url, verbose)
 	if err != nil {
 		return 0, err
 	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return 0, err
-	}
-	if verbose {
-		log.Infoln(string(body))
-	}
+
 	var result EtherscanResponse
 	if err := json.Unmarshal(body, &result); err != nil {
 		return 0, err
@@ -165,21 +133,11 @@ func getWalletBalance(address string, verbose bool, apiKey string) (float64, err
 
 func getEthermineBalance(address string, verbose bool) (float64, error) {
 	url := "https://api.ethermine.org/miner/" + address + "/currentStats"
-	if verbose {
-		log.Infoln(url)
-	}
-	resp, err := http.Get(url)
+	body, err := apiCall(url, verbose)
 	if err != nil {
 		return 0, err
 	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return 0, err
-	}
-	if verbose {
-		log.Infoln(string(body))
-	}
+
 	var result EthermineResponse
 	if err := json.Unmarshal(body, &result); err != nil {
 		return 0, err
@@ -188,4 +146,23 @@ func getEthermineBalance(address string, verbose bool) (float64, error) {
 		return 0, errors.New("Ethermine API error: " + result.Error)
 	}
 	return float64(result.Data.Unpaid) / 1e18, nil
+}
+
+func apiCall(url string, verbose bool) ([]byte, error) {
+	if verbose {
+		log.Infoln(url)
+	}
+	resp, err := http.Get(url)
+	if err != nil {
+		return []byte{}, err
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return []byte{}, err
+	}
+	if verbose {
+		log.Infoln(string(body))
+	}
+	return body, nil
 }
