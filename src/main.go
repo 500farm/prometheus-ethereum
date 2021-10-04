@@ -59,7 +59,7 @@ func main() {
 	if err != nil {
 		log.Fatalln("Error reading initial Ethereum info:", err)
 	} else {
-		log.Infoln("Read initial Ethereum info: ", ethInfo)
+		log.Infoln("Read initial Ethereum info:", ethInfo)
 		ethereumCollector.UpdateFrom(ethInfo)
 	}
 
