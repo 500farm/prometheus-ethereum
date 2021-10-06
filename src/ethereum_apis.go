@@ -152,7 +152,7 @@ func getEthermineBalance(address string, verbose bool) (float64, error) {
 
 func apiCall(url string, verbose bool) ([]byte, error) {
 	if verbose {
-		log.Infoln(url)
+		log.Infoln("-->", url)
 	}
 	resp, err := http.Get(url)
 	if err != nil {
@@ -164,7 +164,7 @@ func apiCall(url string, verbose bool) ([]byte, error) {
 		return []byte{}, err
 	}
 	if verbose {
-		log.Infoln(string(body))
+		log.Infoln("<--", string(body))
 	}
 	return body, nil
 }
