@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/prometheus/common/log"
 )
@@ -164,7 +165,10 @@ func apiCall(url string, verbose bool) ([]byte, error) {
 		return []byte{}, err
 	}
 	if verbose {
-		log.Infoln("<--", string(body))
+		log.Infoln("<--", strings.TrimSpace(string(body)))
+	}
+	if resp.StatusCode != 200 {
+		return nil, errors.New(resp.Status)
 	}
 	return body, nil
 }
