@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"net/http"
 	"strings"
 	"time"
@@ -59,7 +60,8 @@ func main() {
 	if err != nil {
 		log.Fatalln("Error reading initial Ethereum info:", err)
 	} else {
-		log.Infoln("Read initial Ethereum info:", ethInfo)
+		t, _ := json.Marshal(ethInfo)
+		log.Infoln("Read initial Ethereum info:", string(t))
 		ethereumCollector.UpdateFrom(ethInfo)
 	}
 
