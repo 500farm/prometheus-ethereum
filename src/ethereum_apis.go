@@ -41,9 +41,7 @@ type EthermineResponse struct {
 	Status string `json:"status"`
 	Error  string `json:"error"`
 	Data   struct {
-		CurrentStatistics struct {
-			Unpaid int64 `json:"unpaid"`
-		} `json:"currentStatistics"`
+		Unpaid int64 `json:"unpaid"`
 	} `json:"data"`
 }
 
@@ -135,7 +133,7 @@ func getWalletBalance(address string, verbose bool, apiKey string) (float64, err
 }
 
 func getEthermineBalance(address string, verbose bool) (float64, error) {
-	url := "https://api.ethermine.org/miner/" + address + "/dashboard"
+	url := "https://api.ethermine.org/miner/" + address + "/currentStats"
 	body, err := apiCall(url, verbose)
 	if err != nil {
 		return 0, err
@@ -148,7 +146,7 @@ func getEthermineBalance(address string, verbose bool) (float64, error) {
 	if result.Status != "OK" {
 		return 0, errors.New("Ethermine API error: " + result.Error)
 	}
-	return float64(result.Data.CurrentStatistics.Unpaid) / 1e18, nil
+	return float64(result.Data.Unpaid) / 1e18, nil
 }
 
 func apiCall(url string, verbose bool) ([]byte, error) {
