@@ -61,7 +61,8 @@ func main() {
 		log.Fatalln("Error reading initial Ethereum info:", err)
 	} else {
 		t, _ := json.Marshal(ethInfo)
-		log.Infoln("Read initial Ethereum info:", string(t))
+		log.Infoln("Read initial Ethereum info")
+		log.Infoln(string(t))
 		ethereumCollector.UpdateFrom(ethInfo)
 	}
 
