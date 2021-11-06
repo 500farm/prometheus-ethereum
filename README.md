@@ -9,7 +9,7 @@ Prometheus exporter reporting:
 ### Usage
 
 ```
-docker run -d --restart always -p 8577:8577 sergeycheperis/ethereum-exporter ARGS...
+docker run -d --restart always -p 8577:8577 500farm/ethereum-exporter ARGS...
 ```
 To test, open http://localhost:8577. If does not work, check container output with `docker logs`.
 
