@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/prometheus/common/log"
 )
@@ -153,7 +154,8 @@ func apiCall(url string, verbose bool) ([]byte, error) {
 	if verbose {
 		log.Infoln("Fetching:", url)
 	}
-	resp, err := http.Get(url)
+	client := &http.Client{Timeout: 5 * time.Second}
+	resp, err := client.Get(url)
 	if err != nil {
 		return []byte{}, err
 	}
