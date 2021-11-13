@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -43,6 +44,16 @@ type EthermineResponse struct {
 	Error  string `json:"error"`
 	Data   struct {
 		Unpaid int64 `json:"unpaid"`
+	} `json:"data"`
+}
+
+type EthermineDashboardResponse struct {
+	Status string `json:"status"`
+	Error  string `json:"error"`
+	Data   struct {
+		CurrentStatistics struct {
+			Unpaid int64 `json:"unpaid"`
+		} `json:"currentStatistics"`
 	} `json:"data"`
 }
 
@@ -139,6 +150,10 @@ func getEthermineBalance(address string, verbose bool) (float64, error) {
 	if err != nil {
 		return 0, err
 	}
+	if bytes.Contains(body, []byte(`"data":"NO DATA"`)) {
+		// When there are no workers, /currentStats may return "NO DATA", in this case we can get the unpaid balance from dashboard
+		return getEthermineBalance2(address, verbose)
+	}
 
 	var result EthermineResponse
 	if err := json.Unmarshal(body, &result); err != nil {
@@ -148,6 +163,23 @@ func getEthermineBalance(address string, verbose bool) (float64, error) {
 		return 0, errors.New("Ethermine API error: " + result.Error)
 	}
 	return float64(result.Data.Unpaid) / 1e18, nil
+}
+
+func getEthermineBalance2(address string, verbose bool) (float64, error) {
+	url := "https://api.ethermine.org/miner/" + address + "/dashboard"
+	body, err := apiCall(url, verbose)
+	if err != nil {
+		return 0, err
+	}
+
+	var result EthermineDashboardResponse
+	if err := json.Unmarshal(body, &result); err != nil {
+		return 0, err
+	}
+	if result.Status != "OK" {
+		return 0, errors.New("Ethermine API error: " + result.Error)
+	}
+	return float64(result.Data.CurrentStatistics.Unpaid) / 1e18, nil
 }
 
 func apiCall(url string, verbose bool) ([]byte, error) {
