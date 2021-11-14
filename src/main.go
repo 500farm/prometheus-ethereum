@@ -55,7 +55,8 @@ func main() {
 		monitorAddressesSplit = strings.Split(*monitorAddresses, ",")
 	}
 
-	ethereumCollector, _ := newEthereumCollector()
+	ethereumCollectorGlobal := newEthereumCollector(false)
+	ethereumCollector := newEthereumCollector(true)
 	ethInfo, err := getEthereumInfoFromApis(monitorAddressesSplit, true)
 	if err != nil {
 		log.Fatalln("Error reading initial Ethereum info:", err)
@@ -63,11 +64,15 @@ func main() {
 		t, _ := json.Marshal(ethInfo)
 		log.Infoln("Read initial Ethereum info")
 		log.Infoln(string(t))
+		ethereumCollectorGlobal.UpdateFrom(ethInfo)
 		ethereumCollector.UpdateFrom(ethInfo)
 	}
 
 	http.HandleFunc("/metrics", func(w http.ResponseWriter, r *http.Request) {
 		metricsHandler(w, r, ethereumCollector)
+	})
+	http.HandleFunc("/metrics/global", func(w http.ResponseWriter, r *http.Request) {
+		metricsHandler(w, r, ethereumCollectorGlobal)
 	})
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`<html>
@@ -88,7 +93,8 @@ func main() {
 		</head>
 		<body>
 		<h1>Ethereum Exporter</h1>
-		<a href="/metrics">Metrics</a>
+		<a href="/metrics">Metrics</a><br>
+		<a href="/metrics/global">Without balances</a>
 		</body>
 		</html>`))
 	})
@@ -100,6 +106,7 @@ func main() {
 			if err != nil {
 				log.Errorln(err)
 			} else {
+				ethereumCollectorGlobal.UpdateFrom(ethInfo)
 				ethereumCollector.UpdateFrom(ethInfo)
 			}
 		}
