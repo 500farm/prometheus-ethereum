@@ -97,8 +97,8 @@ func main() {
 		</head>
 		<body>
 		<h1>Ethereum Exporter</h1>
-		<a href="/metrics">Metrics</a><br>
-		<a href="/metrics/global">Without balances</a>
+		<a href="metrics">Metrics</a><br>
+		<a href="metrics/global">Without balances</a>
 		</body>
 		</html>`))
 	})
