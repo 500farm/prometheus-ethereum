@@ -4,8 +4,7 @@ Prometheus exporter reporting:
 - Overall Ethereum network stats (diffculty etc).
 - ETH price.
 - Balances of specified Ethereum addresses in ETH and USD (requires [Etherscan.io](https://etherscan.io/) API key).
-- Unpaid balances on [Ethermine.org](https://ethermine.org) pool in ETH and USD. So far, only Ethermine pool is supported.
-
+- Unpaid balances on pools ([Ethermine.org](https://ethermine.org) and [2miners.com](https://eth.2miners.com/)) in ETH and USD.
 ### Usage
 
 ```
@@ -24,14 +23,18 @@ To test, open http://localhost:8577. If does not work, check container output wi
     How often to query third-party APIs for updates (default 1m).
     
 --monitor-addresses=0x....,0x....
-    Addresses to watch on Ethereum network and Ethermine pool. Separate multiple addresses with comma.
-    Use with --etherscan-key and/or --ethermine-org.
+    Addresses to watch on Ethereum network and pools. Separate multiple addresses with comma.
+    Ethermine.org and 2miners.com pools are supported.
+    Use with --etherscan-key, --ethermine-org or --2miners-com.
     
 --etherscan-key=KEY
     Query balances for monitored addresses from Etherscan API. Specify the API key.
     
 --ethermine-org
-    Query unpaid balances for monitored addresses from Ethermine pool. No key required.
+    Query unpaid balances for monitored addresses from Ethermine.org pool. No key required.
+
+--2miners-com
+    Query unpaid balances for monitored addresses from 2miners.com pool. No key required.
 ```
 
 To get your Etherscan API key, register on https://etherscan.io/login, then go to API KEYS section of your account.
@@ -39,11 +42,13 @@ To get your Etherscan API key, register on https://etherscan.io/login, then go t
 ### Example output
 
 ```
-# HELP ethereum_address_balance Balance on Ethereum address and unpaid on Ethermine pool
+# HELP ethereum_address_balance Balance on Ethereum address and unpaid on Ethermine.org pool
 # TYPE ethereum_address_balance gauge
 ethereum_address_balance{address="0xccB6CBEafc3b937db1Bbc837E7992a9dE9D34Aa4",currency="ETH",location="ethermine-org"} 0.09006578087788984
+ethereum_address_balance{address="0xccB6CBEafc3b937db1Bbc837E7992a9dE9D34Aa4",currency="ETH",location="2miners.com"} 0
 ethereum_address_balance{address="0xccB6CBEafc3b937db1Bbc837E7992a9dE9D34Aa4",currency="ETH",location="wallet"} 0.4816605943888761
 ethereum_address_balance{address="0xccB6CBEafc3b937db1Bbc837E7992a9dE9D34Aa4",currency="USD",location="ethermine-org"} 306.98921412228754
+ethereum_address_balance{address="0xccB6CBEafc3b937db1Bbc837E7992a9dE9D34Aa4",currency="USD",location="2miners-com"} 0
 ethereum_address_balance{address="0xccB6CBEafc3b937db1Bbc837E7992a9dE9D34Aa4",currency="USD",location="wallet"} 1641.740135974484
 
 # HELP ethereum_block_reward_eth Reward for the last found block, in ETH

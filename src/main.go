@@ -24,7 +24,7 @@ var (
 	).Default("1m").Duration()
 	monitorAddresses = kingpin.Flag(
 		"monitor-addresses",
-		"Monitor these Ethereum addresses for balance (comma-separated). Requires --etherscan-key and/or --ethermine-org",
+		"Monitor these Ethereum addresses for balance (comma-separated). Requires --etherscan-key, --ethermine-org or --2miners-org",
 	).Default("").String()
 	etherscanKey = kingpin.Flag(
 		"etherscan-key",
@@ -33,6 +33,10 @@ var (
 	monitorEthermine = kingpin.Flag(
 		"ethermine-org",
 		"Monitor unpaid balances for --monitor-addresses on Ethermine.org pool.",
+	).Default("false").Bool()
+	monitorTwoMiners = kingpin.Flag(
+		"2miners-com",
+		"Monitor unpaid balances for --monitor-addresses on 2miners.com pool.",
 	).Default("false").Bool()
 )
 

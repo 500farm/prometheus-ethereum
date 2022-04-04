@@ -63,7 +63,7 @@ func newEthereumCollector(withBalances bool) *EthereumCollector {
 		address_balance: prometheus.NewGaugeVec(prometheus.GaugeOpts{
 			Namespace: namespace,
 			Name:      "address_balance",
-			Help:      "Balance on Ethereum address and unpaid on Ethermine pool",
+			Help:      "Balance on Ethereum address and unpaid on pool",
 		}, []string{"address", "currency", "location"}),
 	}
 }

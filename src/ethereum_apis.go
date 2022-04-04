@@ -57,6 +57,12 @@ type EthermineDashboardResponse struct {
 	} `json:"data"`
 }
 
+type TwoMinersResponse struct {
+	Stats struct {
+		Balance int64 `json:"balance"`
+	} `json:"stats"`
+}
+
 type EtherscanResponse struct {
 	Status string `json:"status"`
 	Result string `json:"result"`
@@ -123,6 +129,19 @@ func getBalances(address string, verbose bool) []Balance {
 		}
 	}
 
+	if *monitorTwoMiners {
+		v, err := getTwoMinersBalance(address, verbose)
+		if err != nil {
+			log.Errorln(err)
+		} else {
+			balances = append(balances, Balance{
+				Address:  address,
+				Location: "2miners-com",
+				Balance:  v,
+			})
+		}
+	}
+
 	return balances
 }
 
@@ -180,6 +199,20 @@ func getEthermineBalance2(address string, verbose bool) (float64, error) {
 		return 0, errors.New("Ethermine API error: " + result.Error)
 	}
 	return float64(result.Data.CurrentStatistics.Unpaid) / 1e18, nil
+}
+
+func getTwoMinersBalance(address string, verbose bool) (float64, error) {
+	url := "https://eth.2miners.com/api/accounts/" + address
+	body, err := apiCall(url, verbose)
+	if err != nil {
+		return 0, err
+	}
+
+	var result TwoMinersResponse
+	if err := json.Unmarshal(body, &result); err != nil {
+		return 0, err
+	}
+	return float64(result.Stats.Balance) / 1e9, nil
 }
 
 func apiCall(url string, verbose bool) ([]byte, error) {
