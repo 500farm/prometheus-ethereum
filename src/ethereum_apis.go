@@ -71,7 +71,7 @@ type EtherscanResponse struct {
 func getEthereumInfoFromApis(addresses []string, verbose bool) (*EthereumApiResults, error) {
 	result := new(EthereumApiResults)
 
-	{
+	/*
 		url := "https://whattomine.com/coins/151.json"
 		body, err := apiCall(url, verbose)
 		if err != nil {
@@ -80,7 +80,7 @@ func getEthereumInfoFromApis(addresses []string, verbose bool) (*EthereumApiResu
 		if err := json.Unmarshal(body, result); err != nil {
 			return nil, err
 		}
-	}
+	*/
 	{
 		url := "https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD"
 		body, err := apiCall(url, verbose)
