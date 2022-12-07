@@ -1,5 +1,8 @@
 # ethereum_exporter
 
+> :warning: DEPRECATED after Ethereum went POS
+
+
 Prometheus exporter reporting:
 - Overall Ethereum network stats (diffculty etc).
 - ETH price.
